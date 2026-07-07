@@ -1,0 +1,42 @@
+name: Corellium
+
+on: [push]
+
+jobs:
+  corellium:
+    runs-on: ubuntu-latest
+    steps:
+      
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Corellium CLI
+        run: npm install -g @corellium/corellium-cli
+      
+      - name: Login to Corellium
+        run: corellium login --apitoken ${{ secrets.CORELLIUM_API_TOKEN }} --endpoint ${{ secrets.CORELLIUM_ENDPOINT }} --password ${{ secrets.CORELLIUM_LOGIN_PASSWORD }}
+      - name: Create device
+        # The `true` argument will wait for the device to be ready before continuing, which is useful for CI.
+        # We'll store the device ID in an environment variable so we can use it later.
+        run: |
+          id=$(corellium instance create server 24.4.2 ${{ secrets.CORELLIUM_PROJECT }} true)
+          echo "instanceId=$id" >> $GITHUB_ENV
+
+      - name: List apps
+        # This may take a few minutes to finish as the device restores.
+        run: corellium agent apps --project ${{ secrets.CORELLIUM_PROJECT }} --instance ${{ env.instanceId }}
+      
+      - name: List files
+        run: corellium agent files --project ${{ secrets.CORELLIUM_PROJECT }} --instance ${{ env.instanceId }}
+
+      - name: Stop device
+        # The `true` argument will wait for the device to be fully stopped before continuing, which is useful for CI.
+        run: corellium instance stop ${{ env.instanceId }} true
+
+      - name: Delete device
+        run: corellium instance delete ${{ env.instanceId }}
