@@ -20,18 +20,55 @@ jobs:
       
       - name: Login to Corellium
         run: corellium login --apitoken ${{ secrets.CORELLIUM_API_TOKEN }} --endpoint ${{ secrets.CORELLIUM_ENDPOINT }} --password ${{ secrets.CORELLIUM_LOGIN_PASSWORD }}
-        
+
       - name: Create device
         # The `true` argument will wait for the device to be ready before continuing, which is useful for CI.
         # We'll store the device ID in an environment variable so we can use it later.
         run: |
           echo "Creating generic Linux instance..."
-          id=$(corellium instance create server 24.4.2 ${{ secrets.CORELLIUM_PROJECT }} --name CI_CD_PIPELINE --wait)
+
+          id=$(corellium instance create server 24.4.2 ${{ secrets.CORELLIUM_PROJECT }} --name AAAAAA)
           echo "instanceId=$id" >> $GITHUB_ENV
+          sleep 75
+
+      - name: Get instance IP
+        run: |
+          jsonFormat=$(corellium instance get --i "${{ env.instanceId }}" --format json)
+
+          ip=$(python3 -c '
+          import json, sys
+          print(json.load(sys.stdin)["serviceIp"])
+          ' <<< "$jsonFormat")
+
+          echo "instanceIP=$ip" >> "$GITHUB_ENV"
+
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          ssh-keyscan proxy.app.avh.corellium.com >> ~/.ssh/known_hosts
+
+      - name: Run Automation
+        env:
+          SSH_PROXY: ${{ secrets.SSH_PROXY }}
+          VM_USER: ${{ secrets.VM_USER }}
+          VM_IP: ${{ env.instanceId }}
+        run: |
+          chmod +x .github/scripts/corellium_ci.sh
+          ./.github/scripts/corellium_ci.sh
 
       - name: Stop device
-        # The `true` argument will wait for the device to be fully stopped before continuing, which is useful for CI.
+        if: always()
         run: corellium instance stop ${{ env.instanceId }} true
 
       - name: Delete device
-        run: corellium instance delete ${{ env.instanceId }}
+        if: always()
+        run: |
+          corellium instance delete ${{ env.instanceId }}
+
+      - name: Logout
+        if: always()
+        run: |
+          corellium logout
