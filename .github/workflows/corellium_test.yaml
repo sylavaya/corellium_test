@@ -72,6 +72,9 @@ jobs:
           SSH_PROXY: ${{ secrets.SSH_PROXY }}
           VM_USER: ${{ secrets.VM_USER }}
           VM_PASSWORD: ${{ secrets.VM_PASSWORD }}
+          DEPLOY_KEY_GITHUB: ${{ secrets.DEPLOY_KEY_GITHUB }}
+          CORELLIUM_HOST: ${{ secrets.CORELLIUM_ENDPOINT }}
+          CORELLIUM_TOKEN: ${{ secrets.CORELLIUM_API_TOKEN }}
           VM_IP: ${{ env.instanceIP }}
         run: |
           chmod +x .github/scripts/corellium_ci.sh
