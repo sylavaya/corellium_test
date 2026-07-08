@@ -26,6 +26,9 @@ sshpass -p "$VM_PASSWORD" ssh \
 
 export CORELLIUM_HOST="${CORELLIUM_HOST}"
 export CORELLIUM_TOKEN="${CORELLIUM_TOKEN}api"
+export VM_PASSWORD="${VM_PASSWORD}"
+
+echo "$VM_PASSWORD" | sudo -S -v
 
 mkdir -p ~/.ssh
 chmod 700 ~/.ssh
@@ -38,15 +41,19 @@ chmod 600 ~/.ssh/id_ed25519
 
 ssh-keyscan github.com >> ~/.ssh/known_hosts
 
-ssh -T git@github.com || true
+# ssh -T git@github.com || true
+
+rm -rf ppc_test
 
 git clone git@github.com:sylavaya/ppc_test.git
 
 cd ~/ppc_test/vlabs-SiL
 
-./vlabs-SiL.sh select -n SK_S32K344
+./vlabs-SiL.sh setup
 
-./vlabs-SiL.sh test logs test_voltage_off
+./vlabs-SiL.sh select -n S32K344_VAYAVYA_LABS_PPC
+
+./vlabs-SiL.sh test logs test_power_off
 
 cd ..
 
