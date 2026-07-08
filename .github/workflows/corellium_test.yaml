@@ -17,6 +17,11 @@ jobs:
 
       - name: Install Corellium CLI
         run: npm install -g @corellium/corellium-cli
+
+      - name: Install sshpass
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sshpass
       
       - name: Login to Corellium
         run: corellium login --apitoken ${{ secrets.CORELLIUM_API_TOKEN }} --endpoint ${{ secrets.CORELLIUM_ENDPOINT }} --password ${{ secrets.CORELLIUM_LOGIN_PASSWORD }}
@@ -37,10 +42,18 @@ jobs:
 
           ip=$(python3 -c '
           import json, sys
-          print(json.load(sys.stdin)["serviceIp"])
+          print(json.load(sys.stdin)["wifiIp"])
           ' <<< "$jsonFormat")
 
           echo "instanceIP=$ip" >> "$GITHUB_ENV"
+
+      # - name: Setup SSH Key
+      #   run: |
+      #     mkdir -p ~/.ssh
+      #     echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+      #     chmod 600 ~/.ssh/id_ed25519
+
+      #     ssh-keyscan proxy.app.avh.corellium.com >> ~/.ssh/known_hosts
 
       - name: Setup SSH Key
         run: |
@@ -48,13 +61,18 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
 
-          ssh-keyscan proxy.app.avh.corellium.com >> ~/.ssh/known_hosts
+          for i in {1..5}; do
+            ssh-keyscan -H proxy.app.avh.corellium.com >> ~/.ssh/known_hosts && break
+            echo "Retrying ssh-keyscan..."
+            sleep 5
+          done
 
       - name: Run Automation
         env:
           SSH_PROXY: ${{ secrets.SSH_PROXY }}
           VM_USER: ${{ secrets.VM_USER }}
-          VM_IP: ${{ env.instanceId }}
+          VM_PASSWORD: ${{ secrets.VM_PASSWORD }}
+          VM_IP: ${{ env.instanceIP }}
         run: |
           chmod +x .github/scripts/corellium_ci.sh
           ./.github/scripts/corellium_ci.sh

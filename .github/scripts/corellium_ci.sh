@@ -4,13 +4,12 @@ set -euo pipefail
 
 echo "Waiting for the VM to become reachable..."
 
-until ssh \
-    -o BatchMode=yes \
+until sshpass -p "$VM_PASSWORD" ssh \
     -o ConnectTimeout=5 \
     -o StrictHostKeyChecking=no \
     -o UserKnownHostsFile=/dev/null \
     -J "$SSH_PROXY" \
-    "${VM_USER}@${VM_IP}" \
+    "$VM_USER@$VM_IP" \
     "echo ready" >/dev/null 2>&1
 do
     echo "VM not ready yet..."
@@ -19,12 +18,11 @@ done
 
 echo "VM is ready."
 
-ssh \
-    -o BatchMode=yes \
+sshpass -p "$VM_PASSWORD" ssh \
     -o StrictHostKeyChecking=no \
     -o UserKnownHostsFile=/dev/null \
     -J "$SSH_PROXY" \
-    "${VM_USER}@${VM_IP}" <<'EOF'
+    "$VM_USER@$VM_IP" <<'EOF'
 echo "Hello World!"
 hostname
 uname -a
