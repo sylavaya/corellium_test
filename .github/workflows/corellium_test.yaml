@@ -27,18 +27,12 @@ jobs:
         run: corellium login --apitoken ${{ secrets.CORELLIUM_API_TOKEN }} --endpoint ${{ secrets.CORELLIUM_ENDPOINT }} --password ${{ secrets.CORELLIUM_LOGIN_PASSWORD }}
 
       - name: Create device
-        # The `true` argument will wait for the device to be ready before continuing, which is useful for CI.
-        # We'll store the device ID in an environment variable so we can use it later.
         run: |
           echo "Creating generic Linux instance..."
 
           id=$(corellium instance create server 24.4.2 ${{ secrets.CORELLIUM_PROJECT }} --name CI_CD_PIPELINE)
           echo "instanceId=$id" >> $GITHUB_ENV
           sleep 75
-
-          # id=5d198493-64cb-42b5-a764-afb32112f297
-          # echo "instanceId=$id" >> $GITHUB_ENV
-          # corellium start 5d198493-64cb-42b5-a764-afb32112f297
 
       - name: Get instance IP
         run: |
@@ -50,14 +44,6 @@ jobs:
           ' <<< "$jsonFormat")
 
           echo "instanceIP=$ip" >> "$GITHUB_ENV"
-
-      # - name: Setup SSH Key
-      #   run: |
-      #     mkdir -p ~/.ssh
-      #     echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-      #     chmod 600 ~/.ssh/id_ed25519
-
-      #     ssh-keyscan proxy.app.avh.corellium.com >> ~/.ssh/known_hosts
 
       - name: Setup SSH Key
         run: |

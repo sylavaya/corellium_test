@@ -28,22 +28,6 @@ export CORELLIUM_HOST="${CORELLIUM_HOST}api"
 export CORELLIUM_TOKEN="${CORELLIUM_TOKEN}"
 export VM_PASSWORD="${VM_PASSWORD}"
 
-echo "===== ENVIRONMENT CHECK ====="
-
-echo "CORELLIUM_HOST: $CORELLIUM_HOST"
-
-if [ -n "$CORELLIUM_TOKEN" ]; then
-    echo "CORELLIUM_TOKEN: ${CORELLIUM_TOKEN:0:10}... (length=${#CORELLIUM_TOKEN})"
-else
-    echo "CORELLIUM_TOKEN is EMPTY"
-fi
-
-echo
-echo "Variables from environment:"
-env | grep CORELLIUM
-
-echo "============================="
-
 echo "$VM_PASSWORD" | sudo -S -v
 
 mkdir -p ~/.ssh
@@ -65,7 +49,7 @@ cd ~/ppc_test/vlabs-SiL
 
 ./vlabs-SiL.sh refresh
 
-./vlabs-SiL.sh select -n S32K344_VAYAVYA_LABS_PPC
+./vlabs-SiL.sh select -n SK_S32K344
 
 ./vlabs-SiL.sh test logs test_power_off
 
