@@ -30,15 +30,15 @@ jobs:
         # The `true` argument will wait for the device to be ready before continuing, which is useful for CI.
         # We'll store the device ID in an environment variable so we can use it later.
         run: |
-          # echo "Creating generic Linux instance..."
+          echo "Creating generic Linux instance..."
 
-          # id=$(corellium instance create server 24.4.2 ${{ secrets.CORELLIUM_PROJECT }} --name AAAAAA)
-          # echo "instanceId=$id" >> $GITHUB_ENV
-          # sleep 75
-          
-          id=5d198493-64cb-42b5-a764-afb32112f297
+          id=$(corellium instance create server 24.4.2 ${{ secrets.CORELLIUM_PROJECT }} --name CI_CD_PIPELINE)
           echo "instanceId=$id" >> $GITHUB_ENV
-          corellium start 5d198493-64cb-42b5-a764-afb32112f297
+          sleep 75
+
+          # id=5d198493-64cb-42b5-a764-afb32112f297
+          # echo "instanceId=$id" >> $GITHUB_ENV
+          # corellium start 5d198493-64cb-42b5-a764-afb32112f297
 
       - name: Get instance IP
         run: |
@@ -88,10 +88,10 @@ jobs:
         if: always()
         run: corellium instance stop ${{ env.instanceId }} true
 
-      # - name: Delete device
-      #   if: always()
-      #   run: |
-      #     corellium instance delete ${{ env.instanceId }}
+      - name: Delete device
+        if: always()
+        run: |
+          corellium instance delete ${{ env.instanceId }}
 
       - name: Logout
         if: always()
